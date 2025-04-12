@@ -1,31 +1,39 @@
 {
   "manifest_version": 3,
   "name": "DontBite!",
-  "version": "1.0",
-  "description": "Post-apocalyptic email phishing protection",
+  "version": "1.0.2",
+  "description": "Post-apocalyptic phishing protection for your wasteland communications",
+  
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
-    }
+    },
+    "default_title": "Scan for phishing threats"
   },
+
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "alarms"
   ],
+
   "host_permissions": [
     "*://mail.google.com/*",
     "*://outlook.office.com/*",
-    "*://outlook.live.com/*"
+    "*://outlook.live.com/*",
+    "*://generativelanguage.googleapis.com/*"
   ],
+
   "content_scripts": [
     {
       "matches": [
@@ -34,16 +42,46 @@
         "*://outlook.live.com/*"
       ],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
+
   "background": {
-    "service_worker": "background.js"
-  }
-  {
-    "web_accessible_resources": [{
-      "resources": ["/icons/warning.png"],
-      "matches": ["<all_urls>"]
-    }]
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/warning.png",
+        "sounds/alert.mp3",
+        "styles/wasteland.css"
+      ],
+      "matches": [
+        "*://mail.google.com/*",
+        "*://outlook.office.com/*",
+        "*://outlook.live.com/*"
+      ]
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' https://generativelanguage.googleapis.com; object-src 'self'"
+  },
+
+  "minimum_chrome_version": "92",
+
+  "incognito": "split",
+
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+B",
+        "mac": "Command+Shift+B"
+      },
+      "description": "Scan current email"
+    }
   }
 }

@@ -30,7 +30,7 @@ function isExtensionContextAvailable() {
       if (callback) callback({ status: "error", error: error.message });
     }
   }
-  
+
 /**
  * Scans the current email content based on provider
  * @returns {string|null} Email content or null if not found
@@ -97,7 +97,7 @@ function highlightSuspiciousElements() {
       // Mismatched link text
       (link.textContent.trim() !== href && !link.textContent.includes(href)) ||
       // Known phishing domains
-      /(verify|account|login|secure)\.(com|net|org)/i.test(href);
+      /(verify|account|login|secure)\.(com|net|org)/i.test(href))
     
     if (isDangerous) {
       link.style.border = '2px solid #ff3d3d';
