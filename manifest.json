@@ -30,8 +30,7 @@
     "scripting",
     "storage",
     "webNavigation",
-    "webRequest",
-    "webRequestBlocking"
+    "webRequest"
   ],
 
   "host_permissions": [
