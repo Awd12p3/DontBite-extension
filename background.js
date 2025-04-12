@@ -1,14 +1,18 @@
 // Background service worker
 chrome.runtime.onInstalled.addListener(() => {
-    // Set initial storage values
     chrome.storage.local.set({
       scanCount: 0,
       threatCount: 0,
-      useMock: true // Set to false when you have Gemini API key
+      useMock: true // Set to false when using real API
     });
+    console.log('[DontBite!] Extension installed - welcome to the wasteland');
   });
   
-  // Handle icon click
-  chrome.action.onClicked.addListener((tab) => {
-    chrome.tabs.sendMessage(tab.id, {action: "rescan"});
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "reportPhishing") {
+      chrome.storage.local.get(['threatCount'], (data) => {
+        const newCount = (data.threatCount || 0) + 1;
+        chrome.storage.local.set({ threatCount: newCount });
+      });
+    }
   });
