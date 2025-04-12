@@ -34,9 +34,10 @@
   "content_scripts": [
     {
       "matches": [
-        "*://mail.google.com/*",
-        "*://outlook.office.com/*",
-        "*://outlook.live.com/*"
+        "*://mail.google.com/mail/u/*/#inbox/*",
+        "*://mail.google.com/mail/u/*/#search/*",
+        "*://outlook.office.com/mail/id/*",
+        "*://outlook.live.com/mail/id/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
