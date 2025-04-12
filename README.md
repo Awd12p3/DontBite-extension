@@ -1,0 +1,1 @@
+# DontBite-extension
