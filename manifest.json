@@ -74,8 +74,7 @@
   ],
 
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https://generativelanguage.googleapis.com; object-src 'none'",
-    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals allow-same-origin; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https://generativelanguage.googleapis.com; object-src 'none'"
   },
 
   "minimum_chrome_version": "92"
