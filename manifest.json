@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DontBite!",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Post-apocalyptic phishing protection",
   
   "icons": {
@@ -16,23 +16,29 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
-    }
+    },
+    "default_title": "Scan for phishing threats"
   },
 
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
 
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking"
   ],
 
   "host_permissions": [
     "*://mail.google.com/*",
     "*://outlook.office.com/*",
-    "*://outlook.live.com/*"
+    "*://outlook.live.com/*",
+    "https://generativelanguage.googleapis.com/*"
   ],
 
   "content_scripts": [
@@ -44,18 +50,33 @@
         "*://outlook.live.com/mail/id/*"
       ],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "css": ["styles/wasteland.css"],
+      "run_at": "document_idle",
+      "all_frames": false,
+      "match_about_blank": false
     }
   ],
 
   "web_accessible_resources": [
     {
-      "resources": ["icons/warning.png", "sounds/alert.mp3"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "icons/warning.png",
+        "sounds/alert.mp3",
+        "popup/popup.html",
+        "styles/*.css"
+      ],
+      "matches": [
+        "*://mail.google.com/*",
+        "*://outlook.office.com/*",
+        "*://outlook.live.com/*"
+      ]
     }
   ],
 
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; connect-src 'self' https://generativelanguage.googleapis.com; object-src 'self'"
-  }
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https://generativelanguage.googleapis.com; object-src 'none'",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals allow-same-origin; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
+  },
+
+  "minimum_chrome_version": "92"
 }

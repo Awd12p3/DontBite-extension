@@ -1,97 +1,45 @@
-// ====================
-// DONTBITE! - Content Script
-// Email-View Only Phishing Detector
-// ====================
+// Content script with error handling and accessibility fixes
+console.log('[DontBite!] Content script loaded');
 
-console.log('[DontBite!] Content script loaded - awaiting email opening...');
-
-// Check if we're in an email view (not inbox)
-function isEmailView() {
+// ===== CORE FUNCTIONALITY =====
+const isEmailView = () => {
   // Gmail detection
   if (window.location.hostname.includes('mail.google.com')) {
-    return (
-      // Email view URLs contain /mail/u/0/#inbox/ or /mail/u/0/#search/
-      /\/mail\/u\/\d+\/(#inbox|#search)\/.+/.test(window.location.hash) &&
-      // Email content element exists
-      !!document.querySelector('.ii.gt')
-    );
+    return /\/mail\/u\/\d+\/(#inbox|#search)\/.+/.test(window.location.hash) &&
+           !!document.querySelector('.ii.gt');
   }
-
   // Outlook detection
-  if (window.location.hostname.includes('outlook.office.com') || 
-      window.location.hostname.includes('outlook.live.com')) {
-    return (
-      // Email view URLs contain /mail/id/
-      /\/mail\/id\//.test(window.location.pathname) &&
-      // Email content element exists
-      !!document.querySelector('[role="article"]')
-    );
+  if (window.location.hostname.includes('outlook')) {
+    return /\/mail\/id\//.test(window.location.pathname) &&
+           !!document.querySelector('[role="article"]');
   }
-
   return false;
-}
+};
 
-// Initialize only when email is opened
-function initializeEmailScan() {
-  if (!isEmailView()) {
-    console.log('[DontBite!] Not in email view - skipping activation');
-    return;
-  }
-
-  console.log('[DontBite!] Email view detected - activating scanner');
-  
-  // Run initial scan
-  scanAndHighlight();
-
-  // Set up observer for dynamic content
-  const observer = new MutationObserver((mutations) => {
-    if (isEmailView()) {
-      scanAndHighlight();
-    }
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: false
-  });
-}
-
-// Combined scan and highlight function
-function scanAndHighlight() {
-  const emailContent = scanEmail();
-  if (emailContent) {
-    highlightSuspiciousElements();
-    analyzeContent(emailContent);
-  }
-}
-
-// Email content scanning
-function scanEmail() {
+const scanEmail = () => {
   try {
-    let emailContent = null;
-    
+    let content = null;
     if (window.location.hostname.includes('mail.google.com')) {
-      const emailDiv = document.querySelector('.ii.gt') || 
-                      document.querySelector('.a3s.aiL');
-      emailContent = emailDiv?.innerText;
-    } 
-    else if (window.location.hostname.includes('outlook')) {
-      const emailDiv = document.querySelector('[role="article"]') || 
-                      document.querySelector('.EmailBody');
-      emailContent = emailDiv?.innerText;
+      content = document.querySelector('.ii.gt')?.innerText;
+    } else if (window.location.hostname.includes('outlook')) {
+      content = document.querySelector('[role="article"]')?.innerText;
     }
-
-    return emailContent || null;
+    return content || null;
   } catch (error) {
     console.error('[DontBite!] Scan error:', error);
     return null;
   }
-}
+};
 
-// Highlight suspicious elements
-function highlightSuspiciousElements() {
-  // Link analysis
+const highlightSuspiciousElements = () => {
+  // Fix accessibility conflicts first
+  document.querySelectorAll('[aria-hidden="true"]').forEach(el => {
+    if (el.contains(document.activeElement)) {
+      el.removeAttribute('aria-hidden');
+    }
+  });
+
+  // Highlight suspicious links
   document.querySelectorAll('a').forEach(link => {
     if (!link.href) return;
     
@@ -102,20 +50,56 @@ function highlightSuspiciousElements() {
     );
     
     if (isDangerous) {
-      link.style.border = '2px solid #ff3d3d';
-      link.insertAdjacentHTML('beforeend', '<span style="color:#ff6b00"> ☢️</span>');
-      link.title = 'WARNING: Suspicious link detected!';
+      link.style.cssText = `
+        border: 2px solid #ff3d3d !important;
+        position: relative !important;
+        padding: 2px !important;
+      `;
+      const warning = document.createElement('span');
+      warning.textContent = ' ☢️';
+      warning.style.cssText = `
+        color: #ff6b00 !important;
+        margin-left: 3px !important;
+      `;
+      link.appendChild(warning);
     }
+  });
+};
+
+// ===== MESSAGE HANDLING =====
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  switch (request.action) {
+    case "scanEmail":
+      sendResponse({ content: scanEmail() });
+      break;
+      
+    case "phishingIntercepted":
+      alert(`🚨 DontBite! blocked phishing link:\n${request.url}`);
+      break;
+  }
+  return true;
+});
+
+// ===== INITIALIZATION =====
+if (isEmailView()) {
+  highlightSuspiciousElements();
+  
+  const observer = new MutationObserver((mutations) => {
+    if (isEmailView()) {
+      highlightSuspiciousElements();
+    }
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
   });
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeEmailScan);
-} else {
-  initializeEmailScan();
-}
-// Report phishing example message
-chrome.runtime.sendMessage({ action: "reportPhishing" }, (response) => {
-  console.log("[DontBite!] Phishing report sent:", response);
+// Global error handler
+window.addEventListener('error', (event) => {
+  if (event.message.includes('aria-hidden') || 
+      event.filename.includes('gmail.inject')) {
+    event.preventDefault();
+  }
 });
