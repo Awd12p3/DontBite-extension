@@ -115,3 +115,7 @@ if (document.readyState === 'loading') {
 } else {
   initializeEmailScan();
 }
+// Report phishing example message
+chrome.runtime.sendMessage({ action: "reportPhishing" }, (response) => {
+  console.log("[DontBite!] Phishing report sent:", response);
+});

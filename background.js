@@ -12,7 +12,11 @@ chrome.runtime.onInstalled.addListener(() => {
     if (request.action === "reportPhishing") {
       chrome.storage.local.get(['threatCount'], (data) => {
         const newCount = (data.threatCount || 0) + 1;
-        chrome.storage.local.set({ threatCount: newCount });
+        chrome.storage.local.set({ threatCount: newCount }, () => {
+          sendResponse({ success: true, newCount });
+        });
       });
+      return true;
     }
   });
+  
