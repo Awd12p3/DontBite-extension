@@ -40,4 +40,10 @@
   "background": {
     "service_worker": "background.js"
   }
+  {
+    "web_accessible_resources": [{
+      "resources": ["/icons/warning.png"],
+      "matches": ["<all_urls>"]
+    }]
+  }
 }
